@@ -41,7 +41,7 @@ public class TimeSeenMain
         }
     }
 
-    public static void ReturnDate(string jsonData)
+    public static string ReturnDate(string jsonData)
     {
         var data = JsonConvert.DeserializeObject<Return>(jsonData);
 
@@ -53,16 +53,24 @@ public class TimeSeenMain
                 string lastName = user.lastName;
                 
 
-                Console.WriteLine("Nickname: " + nickname);
-                Console.WriteLine("Is Online: " + user.isOnline);
-                Console.WriteLine("Was Online: " + user.lastSeenDate);
+                //Console.WriteLine("Nickname: " + nickname);
+                //Console.WriteLine("Is Online: " + user.isOnline);
+                //Console.WriteLine("Was Online: " + user.lastSeenDate);
                 if (user.isOnline == false)
                 {
                     Console.WriteLine(DateGetter(user.lastSeenDate ?? DateTime.UtcNow));
+                    return DateGetter(user.lastSeenDate ?? DateTime.UtcNow);
+                }
+                else
+                {
+                    Console.WriteLine("User is online");
+                    return "User is online";
                 }
                 Console.WriteLine();
             }
         }
+
+        return "";
 
     }
 
