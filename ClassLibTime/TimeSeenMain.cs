@@ -54,8 +54,8 @@ public class TimeSeenMain
                 
 
                 Console.WriteLine("Nickname: " + nickname);
-                Console.WriteLine("Is Online " + user.isOnline);
-                Console.WriteLine("Is Online " + user.lastSeenDate);
+                Console.WriteLine("Is Online: " + user.isOnline);
+                Console.WriteLine("Was Online: " + user.lastSeenDate);
                 if (user.isOnline == false)
                 {
                     Console.WriteLine(DateGetter(user.lastSeenDate ?? DateTime.UtcNow));
@@ -69,41 +69,36 @@ public class TimeSeenMain
     public static string DateGetter(DateTime lastSeen)
     {
         DateTime currentUtcDateTime = DateTime.Now;
-        int delta = (lastSeen - currentUtcDateTime).Duration().Seconds;
+        var delta = (currentUtcDateTime - lastSeen).TotalSeconds;
 
         if (delta < 30)
         {
             return "just now";
         }
-        if (30 << delta < 60)
+        if (30 < delta && delta < 60)
         {
             return "less than a minute ago";
         }
-        if (60 << delta < 3540)
+        if (60 < delta && delta < 3540)
         {
             return "couple of minutes ago";
         }
-        if (3540 << delta < 7140)
+        if (3540 < delta && delta < 7140)
         {
             return "hour ago";
         }
-        if (7140 < delta || DateTime.Today == lastSeen.Date)
+        if (7140 < delta && delta < 172800 && DateTime.Today == lastSeen.Date)
         {
             return "today";
         } 
-        if (7140 < delta || DateTime.Today != lastSeen.Date)
+        if (7140 < delta && delta < 172800 && DateTime.Today != lastSeen.Date)
         {
             return "yesterday";
         }
-        if (604800 < delta)
+        if (172800 < delta && delta < 604800)
         {
             return "this week";
         }
         return "long time ago";
-    }
-
-    public static string test()
-    {
-        return "test";
     }
 }

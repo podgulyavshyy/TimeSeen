@@ -6,8 +6,8 @@ public class UnitTest1
     [Fact]
     public void Test1()
     {
-        
-        string message = TimeSeenMain.test();
-        Assert.Equal("test", message);
+        DateTime lastSeenTest = new DateTime(2023, 03, 02, 9, 5, 23);
+        string message = TimeSeenMain.DateGetter(lastSeenTest);
+        Assert.Equal("long time ago", message);
     }
 }
