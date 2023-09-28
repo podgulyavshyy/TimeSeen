@@ -1,7 +1,7 @@
 namespace TestTime;
 using ClassLibTime;
 
-public class UnitTest1
+public class DateGetterTest
 {
     [Fact]
     public void Test1()
