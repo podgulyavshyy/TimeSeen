@@ -89,7 +89,7 @@ public class TimeSeenMain
                 }
                 else
                 {
-                    Console.WriteLine("User is online");
+                    //Console.WriteLine("User is online");
                     return "User is online";
                 }
             }
