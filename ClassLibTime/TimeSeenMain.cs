@@ -1,3 +1,5 @@
+using System.Reflection.Metadata;
+
 namespace ClassLibTime;
 using System;
 using System.Net.Http;
@@ -7,106 +9,190 @@ using Newtonsoft.Json;
 
 public class TimeSeenMain
 {
-    static async Task Main()
+    public static List<UserData> Users { get; set; }
+
+    static TimeSeenMain()
     {
-
-        using (HttpClient httpClient = new HttpClient())
-        {
-            try
-            {
-
-                string apiUrl = "https://sef.podkolzin.consulting/api/users/lastSeen?offset=1";
-
-                HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
-
-
-                if (response.IsSuccessStatusCode)
-                {
-
-                    string jsonContent = await response.Content.ReadAsStringAsync();
-
-
-                    //Console.WriteLine(jsonContent);
-                    ReturnDate(jsonContent);
-                }
-                else
-                {
-                    Console.WriteLine($"HTTP Error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-            }
-        }
+        Users = new List<UserData>();
     }
 
-    public static string ReturnDate(string jsonData)
+    public static async Task Main()
     {
-        var data = JsonConvert.DeserializeObject<Return>(jsonData);
 
-        if (data != null && data.data != null && data.data.Count > 0)
+
+    }
+
+    public static async Task<Dictionary<int, string>> DataGetter()
+    {
+        int currentOffset = Settings.setOffset();
+        int targetOffset = 20;
+        Dictionary<int, string> dataDictionary = new Dictionary<int, string>();
+        while (true)
         {
+            if (currentOffset == targetOffset)
+            {
+                break;
+            }
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+                try
+                {
+
+                    string apiUrl = $"https://sef.podkolzin.consulting/api/users/lastSeen?offset={currentOffset}";
+
+                    HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+
+
+                    if (response.IsSuccessStatusCode)
+                    {
+
+                        string jsonContent = await response.Content.ReadAsStringAsync();
+
+
+                        //Console.WriteLine(jsonContent);
+                        //ReturnDate(jsonContent);
+                        dataDictionary.Add(currentOffset, jsonContent);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"HTTP Error: {response.StatusCode} - {response.ReasonPhrase}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                    break;
+                }
+            }
+
+            currentOffset++;
+
+        }
+
+        return dataDictionary;
+    }
+
+    public static string EachUser(Dictionary<int, string> usersDictionary)
+    {
+        foreach (var userDict in usersDictionary)
+        {
+            var data = JsonConvert.DeserializeObject<Return>(userDict.Value);
             foreach (var user in data.data)
             {
-                string nickname = user.nickname;
-                string lastName = user.lastName;
-                
-
-                //Console.WriteLine("Nickname: " + nickname);
-                //Console.WriteLine("Is Online: " + user.isOnline);
-                //Console.WriteLine("Was Online: " + user.lastSeenDate);
                 if (user.isOnline == false)
                 {
-                    Console.WriteLine(DateGetter(user.lastSeenDate ?? DateTime.UtcNow));
-                    return DateGetter(user.lastSeenDate ?? DateTime.UtcNow);
+
+
+                    // Console.WriteLine(DateGetter(user.lastSeenDate ?? DateTime.UtcNow));
+                    return DateGetter(user.lastSeenDate ?? DateTime.UtcNow, Settings.setLanguage());
                 }
                 else
                 {
                     Console.WriteLine("User is online");
                     return "User is online";
                 }
-                Console.WriteLine();
             }
         }
 
         return "";
-
     }
 
-    public static string DateGetter(DateTime lastSeen)
+    public static Dictionary<double, DateTime> Calculations(DateTime lastSeen)
     {
         DateTime currentUtcDateTime = DateTime.Now;
         var delta = (currentUtcDateTime - lastSeen).TotalSeconds;
+        Dictionary<double, DateTime> returnDict = new Dictionary<double, DateTime>();
+        returnDict.Add(delta, lastSeen);
+        return returnDict;
+    }
 
-        if (delta < 30)
+    public static string DateGetter(DateTime lastSeen, int lang)
+    {
+        Dictionary<double, DateTime> timeDeltaAndLS = Calculations(lastSeen);
+        double timeDelta = timeDeltaAndLS.Keys.First();
+        DateTime LS = timeDeltaAndLS[timeDelta];
+        
+        if (lang == 0)
         {
-            return "just now";
+            if (timeDelta < 30)
+            {
+                return "just now";
+            }
+
+            if (30 < timeDelta && timeDelta < 60)
+            {
+                return "less than a minute ago";
+            }
+
+            if (60 < timeDelta && timeDelta < 3540)
+            {
+                return "couple of minutes ago";
+            }
+
+            if (3540 < timeDelta && timeDelta < 7140)
+            {
+                return "hour ago";
+            }
+
+            if (7140 < timeDelta && timeDelta < 172800 && DateTime.Today == LS.Date)
+            {
+                return "today";
+            }
+
+            if (7140 < timeDelta && timeDelta < 172800 && DateTime.Today != LS.Date)
+            {
+                return "yesterday";
+            }
+
+            if (172800 < timeDelta && timeDelta < 604800)
+            {
+                return "this week";
+            }
+
+            return "long time ago";
         }
-        if (30 < delta && delta < 60)
+
+        if (lang == 1)
         {
-            return "less than a minute ago";
+            if (timeDelta < 30)
+            {
+                return "щойно";
+            }
+
+            if (30 < timeDelta && timeDelta < 60)
+            {
+                return "менше хвилини тому";
+            }
+
+            if (60 < timeDelta && timeDelta < 3540)
+            {
+                return "декілька хвилин тому";
+            }
+
+            if (3540 < timeDelta && timeDelta < 7140)
+            {
+                return "годину тому";
+            }
+
+            if (7140 < timeDelta && timeDelta < 172800 && DateTime.Today == LS.Date)
+            {
+                return "сьогодні";
+            }
+
+            if (7140 < timeDelta && timeDelta < 172800 && DateTime.Today != LS.Date)
+            {
+                return "вчора";
+            }
+
+            if (172800 < timeDelta && timeDelta < 604800)
+            {
+                return "цього тижня";
+            }
+
+            return "давно";
         }
-        if (60 < delta && delta < 3540)
-        {
-            return "couple of minutes ago";
-        }
-        if (3540 < delta && delta < 7140)
-        {
-            return "hour ago";
-        }
-        if (7140 < delta && delta < 172800 && DateTime.Today == lastSeen.Date)
-        {
-            return "today";
-        } 
-        if (7140 < delta && delta < 172800 && DateTime.Today != lastSeen.Date)
-        {
-            return "yesterday";
-        }
-        if (172800 < delta && delta < 604800)
-        {
-            return "this week";
-        }
-        return "long time ago";
+
+        return "";
     }
 }
